@@ -76,49 +76,21 @@ async def getDate(ctx):
 # this event listens for user reactions and adds them to the reminderObject structure to subscribe them to that reminder
 @bot.event
 async def on_raw_reaction_add(payload):
-    reactedUser = payload.member.display_name
+    reactedUser = payload.member.id  
     reactedEmoji = payload.emoji.name
-    if(reactedUser != "RemindR"):
+    if(payload.member.display_name != "RemindR"):
         if(reactedEmoji == '📖'):
             # reactedUser = reactedUser + '#' + payload.member.discriminator
             reminderObject[payload.message_id]["user"][reactedUser] = "Incomplete"
-            print((reminderObject))
         elif(reactedEmoji == '📕'):
             reminderObject[payload.message_id]["user"][reactedUser] = "Complete"
-            print((reminderObject))
 
-            
-# this event will remove the user from an already subscribed reminder
-# @bot.event
-# async def on_raw_reaction_remove(payload):
-#     guild = await client.fetch_guild(payload.guild_id)
-#     member = get(guild.members, id=payload.user_id)
-#     reactedUser = member.display_name
-#     del reminderObject[payload.message_id]["user"][reactedUser]
-#     print(reminderObject)
-
-# command to subsribe to an existing reminder
-@bot.command(name='sub')
-async def subscribe(ctx):
-
-    # ensuring bot doesn't reply to its own messages    
-    if ctx.author == client.user:
-        return
-
-    # function to check if the confirmation message was sent by the same user
-    def check(msg):
-        return msg.author == ctx.author and msg.channel == ctx.channel
-
-    await ctx.channel.send('Enter the ID of the reminder')
-    message = await bot.wait_for("message", check=check)
-    ID = int(message.content)
-    # check if the id exists
-    if ID in reminderObject:
-        reminderObject[ID]["user"][ctx.author.name + '#' + ctx.author.discriminator] = "Incomplete"
-        print(reminderObject)
-        await ctx.channel.send('Subscribed!')
-    else:
-        await ctx.channel.send('ID not found!')
+# command to mention users who have subscribed to a reminder
+@bot.command(name='show')
+async def showUsers(ctx):
+    for key in reminderObject:
+        for user in reminderObject[key]['user']:
+            await ctx.channel.send('<@' + str(user) + '>')
         
 
 TOKEN = os.environ['TOKEN']
